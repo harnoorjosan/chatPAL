@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "293413121654",
+    "project_id": "chatpal-93af1",
+    "storage_bucket": "chatpal-93af1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:293413121654:android:65f7622bd470283c4b7957",
+        "android_client_info": {
+          "package_name": "com.example.chatpal"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "293413121654-rrc8dhqasj9hqi9is38fl3i033avaq56.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCN6E8IN5yrkCtXRp1h5zDQatF_EdE3w04"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "293413121654-rrc8dhqasj9hqi9is38fl3i033avaq56.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "293413121654-2g67f733bi9qm2md4rn67i2qnd1k0obt.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.chatpal"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
