@@ -5,13 +5,16 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:chatpal/forgotPassword.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:flutter/widgets.dart';
 
-Future<void> main() async {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Add this line to initialize the binding
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(chatpal());
 }
+
 
 class chatpal extends StatelessWidget {
 
