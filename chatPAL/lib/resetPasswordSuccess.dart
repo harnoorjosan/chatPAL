@@ -1,6 +1,8 @@
 import 'package:chatpal/main.dart';
 import 'package:flutter/material.dart';
 
+import 'loginPage.dart';
+
 class ResetPasswordSuccess extends StatefulWidget {
   const ResetPasswordSuccess({Key? key}) : super(key: key);
 
