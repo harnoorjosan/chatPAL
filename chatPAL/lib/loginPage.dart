@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:chatpal/forgotPassword.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -47,6 +48,25 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
   }
+
+  Future<UserCredential> signInWithGoogle() async {
+    // Trigger the authentication flow
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+    // Obtain the auth details from the request
+    final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+
+    // Create a new credential
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
+
+    // Once signed in, return the UserCredential
+    return await FirebaseAuth.instance.signInWithCredential(credential);
+  }
+
+
 
 
   @override
@@ -246,9 +266,28 @@ class _LoginPageState extends State<LoginPage> {
                           Padding(
                             padding: const EdgeInsets.only(left: 100),
                             child: GestureDetector(
-                              onTap: (){
-                                if (kDebugMode) {
-                                  print('Icon clicked');
+                              onTap: () async {
+                                try {
+                                  // Call the signInWithGoogle method
+                                  UserCredential userCredential = await signInWithGoogle();
+
+                                  // If sign-in is successful, navigate to the home page
+                                  if (userCredential != null) {
+                                    if (context.mounted) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (
+                                              context) => const HomePage(),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                } catch (e) {
+                                  // Handle any errors that occur during sign-in
+                                  if (kDebugMode) {
+                                    print('Sign-in with Google failed: $e');
+                                  }
                                 }
                               },
                               child: const Icon(
@@ -307,3 +346,4 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
