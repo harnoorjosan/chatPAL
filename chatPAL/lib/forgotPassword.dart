@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:chatpal/linkSent.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class ForgotPassword extends StatefulWidget {
   const ForgotPassword({Key? key}) : super(key: key);
@@ -9,6 +12,33 @@ class ForgotPassword extends StatefulWidget {
 }
 
 class _ForgotPasswordState extends State<ForgotPassword> {
+  final TextEditingController emailController = TextEditingController();
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      var users = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+      if (users.isNotEmpty && users.contains('password')){
+        await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+        if (context.mounted){
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const LinkSent(),
+            ),
+          );
+        }
+
+        if (kDebugMode) {
+          print('Password reset email sent to $email');
+        }
+      }
+
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error sending password reset email: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,10 +92,11 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             ),
           ),
           const SizedBox(height: 10.0,),
-          const Padding(
-            padding: EdgeInsets.only(left: 25.0,right: 25.0),
+          Padding(
+            padding: const EdgeInsets.only(left: 25.0,right: 25.0),
             child: TextField(
-              decoration: InputDecoration(
+              controller: emailController,
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(10.0)),
                   borderSide: BorderSide(color: Colors.grey),
@@ -81,12 +112,8 @@ class _ForgotPasswordState extends State<ForgotPassword> {
           Padding(
             padding: const EdgeInsets.only(left: 25.0, right: 25.0),
             child: ElevatedButton(onPressed: (){
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LinkSent(),
-                ),
-              );
+
+              sendPasswordResetEmail(emailController.text);
 
             },
               style: ButtonStyle(
