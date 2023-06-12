@@ -1,5 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:chatpal/homePage.dart';
+import 'package:chatpal/loginPage.dart';
 
 class signUp extends StatefulWidget {
   const signUp({Key? key}) : super(key: key);
@@ -9,6 +13,52 @@ class signUp extends StatefulWidget {
 }
 
 class _signUpState extends State<signUp> {
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool isPasswordVisible = false;
+
+  void _signUp() async{
+    try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: usernameController.text,
+          password: passwordController.text
+      );
+
+      //signUp successfull
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HomePage(),
+          ),
+        );
+      }
+    } on FirebaseAuthException catch(e) {
+      //handle invalid signUp data
+      if(e.code == 'weak-password') {
+        if (kDebugMode) {
+          print('This password is too weak.');
+        }
+      } else if(e.code == 'email-already-in-use') {
+        if (kDebugMode) {
+          print('The account already exists for this email.');
+        }
+      } else if(e.code == 'invalid-email') {
+        if (kDebugMode) {
+          print('The email address is invalid.');
+        }
+      } else {
+        if (kDebugMode) {
+          print('SignUp failed.');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('SignUp failed.');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,10 +135,6 @@ class _signUpState extends State<signUp> {
                             borderRadius: BorderRadius.all(Radius.circular(10.0)),
                             borderSide: BorderSide(color: Colors.grey),
                           ),
-                          hintText: 'Name Surname',
-                          hintStyle: TextStyle(
-                            color: Colors.black,
-                          ),
                         ),
                       ),
                     ),
@@ -100,17 +146,14 @@ class _signUpState extends State<signUp> {
                             fontSize: 16.0),
                       ),
                     ),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 15.0,right: 15.0),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 15.0,right: 15.0),
                       child: TextField(
-                        decoration: InputDecoration(
+                        controller: usernameController,
+                        decoration: const InputDecoration(
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(10.0)),
                             borderSide: BorderSide(color: Colors.grey),
-                          ),
-                          hintText: 'UserXYZ',
-                          hintStyle: TextStyle(
-                            color: Colors.black,
                           ),
                         ),
                       ),
@@ -146,54 +189,37 @@ class _signUpState extends State<signUp> {
                             fontSize: 16.0),
                       ),
                     ),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 15.0,right: 15.0),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 15.0,right: 15.0),
                       child: TextField(
+                        controller: passwordController,
+                        obscureText: !isPasswordVisible,
+                        obscuringCharacter: '*',
                         decoration: InputDecoration(
-                          border: OutlineInputBorder(
+                          border: const OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(10.0)),
                             borderSide: BorderSide(color: Colors.grey),
                           ),
-                          hintText: '*************',
-                          hintStyle: TextStyle(
-                            color: Colors.black,
-                          ),
-                          prefixIcon: Icon(Icons.key),
+                          prefixIcon: const Icon(Icons.key),
                           prefixIconColor: Colors.black,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                              color: Colors.black,
+                            ), onPressed: () {
+                              setState(() {
+                                isPasswordVisible = !isPasswordVisible;
+                              });
+                            },
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20.0,),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 15.0),
-                      child: Text('Confirm Password*',
-                        style: TextStyle(color: Colors.black,
-                            fontSize: 16.0),
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 15.0,right: 15.0),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                            borderSide: BorderSide(color: Colors.grey),
-                          ),
-                          hintText: '*************',
-                          hintStyle: TextStyle(
-                            color: Colors.black,
-                          ),
-                          prefixIcon: Icon(Icons.key),
-                          prefixIconColor: Colors.black,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 40.0),
 
                     Padding(
                       padding: const EdgeInsets.only(left: 15.0, right: 15.0),
                       child: ElevatedButton(onPressed: (){
-                        print('Button Pressed');
+                        _signUp();
                       },
                         style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFFD36675)),
@@ -228,7 +254,6 @@ class _signUpState extends State<signUp> {
                           padding: const EdgeInsets.only(left: 100),
                           child: GestureDetector(
                             onTap: (){
-                              print('Icon clicked');
                             },
                             child: const Icon(
                               FontAwesomeIcons.google,
@@ -241,7 +266,6 @@ class _signUpState extends State<signUp> {
                           padding: const EdgeInsets.only(left: 120),
                           child: GestureDetector(
                             onTap: (){
-                              print('Icon clicked');
                             },
                             child: const Icon(
                               FontAwesomeIcons.apple,
@@ -260,24 +284,25 @@ class _signUpState extends State<signUp> {
                       ),
                       GestureDetector(
                           onTap: (){
-                            Navigator.pop(context);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginPage(),
+                              ),
+                            );
                           },
                           child: const Text('Log In', style: TextStyle(
                               color: Color(0xFFD36675),fontWeight: FontWeight.bold
                           ),)
                       ),
-
                     ],)
                   ],
-
-          ),
+                ),
               ),
             ),
           ),
-      ],
-    ),
-
+        ],
+      ),
     );
-
   }
 }
