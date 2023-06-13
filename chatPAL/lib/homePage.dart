@@ -1,4 +1,10 @@
+import 'package:chatpal/cameraPage.dart';
+import 'package:chatpal/feedPage.dart';
+import 'package:chatpal/meetPage.dart';
+import 'package:chatpal/messagesPage.dart';
+import 'package:chatpal/profilePage.dart';
 import 'package:flutter/material.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -9,11 +15,19 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int cIndex = 0;
+  final List<Widget> screens = [
+    const feedPage(), // Replace with your screen widgets
+    const meetPage(),
+    const cameraPage(),
+    const messagesPage(),
+    const profilePage(),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF114357 ),
+        backgroundColor: const Color(0xFF114357),
         title: const Text('chatPAL'),
         automaticallyImplyLeading: false,
         actions: [
@@ -25,31 +39,44 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+      body: screens[cIndex],
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // Fixed
-        backgroundColor: const Color(0xFF114357 ),
-        //
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: const Color(0xFF114357),
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.white,
         currentIndex: cIndex,
-        onTap: (int index){
+        onTap: (int index) {
           setState(() {
             cIndex = index;
           });
         },
-
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home, size: 30.0,),label: '',),
-          BottomNavigationBarItem(icon: Icon(Icons.tv, size: 30.0),label: '',),
-          BottomNavigationBarItem(icon: Icon(Icons.add_a_photo_rounded, size: 30.0), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.message, size: 30.0), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.person, size: 30.0), label: ''),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home, size: 30.0),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.tv, size: 30.0),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_a_photo_rounded, size: 30.0),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.message, size: 30.0),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person, size: 30.0),
+            label: '',
+          ),
         ],
-
-
-
       ),
-      body: const Center(child: Text("Oops you don't have any friends", style: TextStyle(color: Colors.black, fontSize: 25.0),)),
     );
   }
 }
+
+
+
