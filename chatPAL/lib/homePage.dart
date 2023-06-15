@@ -26,19 +26,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF114357),
-        title: const Text('chatPAL'),
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-              // Handle notification icon pressed
-            },
-          ),
-        ],
-      ),
       body: screens[cIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -77,6 +64,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-
 
