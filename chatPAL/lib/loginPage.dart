@@ -19,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isPasswordVisible = false;
-
+  bool isLoading = false;
 
   void authenticateUserIn() async{
     //await FirebaseAuth.instance.signInWithEmailAndPassword(email: usernameController.text, password: passwordController.text);
@@ -39,11 +39,11 @@ class _LoginPageState extends State<LoginPage> {
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         if (kDebugMode) {
-          print('No user found for that email.');
+          showErrorMessage('Invalid email address');
         }
       } else if (e.code == 'wrong-password') {
         if (kDebugMode) {
-          print('Wrong password provided for that user.');
+          showErrorMessage('Invalid Password');
         }
       }
     }
@@ -66,7 +66,34 @@ class _LoginPageState extends State<LoginPage> {
     return await FirebaseAuth.instance.signInWithCredential(credential);
   }
 
-
+  void showErrorMessage(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Row(
+            children: [
+              const Icon(
+                Icons.warning,
+                color: Colors.red,
+              ),
+              const SizedBox(width: 8),
+              Text(message),
+            ],
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Try Again'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
 
   @override
@@ -140,7 +167,7 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       const Padding(
                         padding: EdgeInsets.only(left: 15.0),
-                        child: Text('Username',
+                        child: Text('E-mail',
                           style: TextStyle(color: Colors.black,
                               fontSize: 16.0),
                         ),
@@ -150,9 +177,10 @@ class _LoginPageState extends State<LoginPage> {
                         child: TextField(
                           controller: usernameController,
                           decoration: const InputDecoration(
+
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                              borderSide: BorderSide(color: Colors.grey),
+                              borderSide: BorderSide(color: Colors.black),
                             ),
                             hintText: 'best_wizard421',
                             hintStyle: TextStyle(
@@ -231,6 +259,7 @@ class _LoginPageState extends State<LoginPage> {
                       Padding(
                         padding: const EdgeInsets.only(left: 15.0, right: 15.0),
                         child: ElevatedButton(onPressed: (){
+
                           authenticateUserIn();
 
                           },
@@ -254,11 +283,29 @@ class _LoginPageState extends State<LoginPage> {
                           ),),
                       ),
                       const SizedBox(height: 40.0),
-                      const Center(
-                        child: Text('OR',style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20.0
-                        ),),
+                      // const Center(
+                      //   child: Text('OR',style: TextStyle(
+                      //       fontWeight: FontWeight.bold,
+                      //       fontSize: 20.0
+                      //   ),),
+                      // ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                        child: Row(
+                          children: const [
+                            Expanded(child: Divider(color: Colors.black)),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 10.0),
+                              child: Text(
+                                'OR',
+                                style: TextStyle(
+                                  fontSize: 20.0,
+                                ),
+                              ),
+                            ),
+                            Expanded(child: Divider(color: Colors.black)),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 40.0),
                       Row(
@@ -272,16 +319,14 @@ class _LoginPageState extends State<LoginPage> {
                                   UserCredential userCredential = await signInWithGoogle();
 
                                   // If sign-in is successful, navigate to the home page
-                                  if (userCredential != null) {
-                                    if (context.mounted) {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (
-                                              context) => const HomePage(),
-                                        ),
-                                      );
-                                    }
+                                  if (context.mounted) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (
+                                            context) => const HomePage(),
+                                      ),
+                                    );
                                   }
                                 } catch (e) {
                                   // Handle any errors that occur during sign-in
