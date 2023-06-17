@@ -1,61 +1,93 @@
+import 'package:chatpal/homePage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:chatpal/homePage.dart';
 import 'package:chatpal/loginPage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
-class signUp extends StatefulWidget {
-  const signUp({Key? key}) : super(key: key);
+class SignUp extends StatefulWidget {
+  const SignUp({Key? key}) : super(key: key);
 
   @override
-  State<signUp> createState() => _signUpState();
+  State<SignUp> createState() => _SignUpState();
 }
 
-class _signUpState extends State<signUp> {
+class _SignUpState extends State<SignUp> {
   final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
   bool isPasswordVisible = false;
+  bool isConfirmPasswordVisible = false;
 
-  void _signUp() async{
+  Future<void> signUpWithEmailAndPassword() async{
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: usernameController.text,
-          password: passwordController.text
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: emailController.text,
+          password: passwordController.text,
       );
 
-      //signUp successfull
-      if (context.mounted) {
-        Navigator.push(
+      User user = userCredential.user!;
+
+      await FirebaseFirestore.instance.collection('UserName').doc(usernameController.text).set({
+        'uid': user.uid,
+        'Name': nameController.text,
+      });
+
+      //signUp successful
+      if(context.mounted) {
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const HomePage(),
+            builder: (context) => const LoginPage(),
           ),
         );
       }
     } on FirebaseAuthException catch(e) {
       //handle invalid signUp data
       if(e.code == 'weak-password') {
-        if (kDebugMode) {
-          print('This password is too weak.');
-        }
+        Fluttertoast.showToast(
+          msg: "This password is too weak.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+        );
       } else if(e.code == 'email-already-in-use') {
-        if (kDebugMode) {
-          print('The account already exists for this email.');
-        }
+        Fluttertoast.showToast(
+          msg: "The account already exists for this email.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+        );
       } else if(e.code == 'invalid-email') {
-        if (kDebugMode) {
-          print('The email address is invalid.');
-        }
+        Fluttertoast.showToast(
+          msg: "The email address is invalid.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+        );
       } else {
-        if (kDebugMode) {
-          print('SignUp failed.');
-        }
+        Fluttertoast.showToast(
+          msg: "SignUp failed.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+        );
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('SignUp failed.');
-      }
+      Fluttertoast.showToast(
+        msg: "SignUp failed.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.white,
+        textColor: Colors.black,
+      );
     }
   }
 
@@ -166,10 +198,11 @@ class _signUpState extends State<signUp> {
                             fontSize: 16.0),
                       ),
                     ),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 15.0,right: 15.0),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 15.0,right: 15.0),
                       child: TextField(
-                        decoration: InputDecoration(
+                        controller: emailController,
+                        decoration: const InputDecoration(
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(10.0)),
                             borderSide: BorderSide(color: Colors.grey),
@@ -215,12 +248,66 @@ class _signUpState extends State<signUp> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 20.0,),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 15.0),
+                      child: Text('Confirm Password*',
+                        style: TextStyle(color: Colors.black,
+                            fontSize: 16.0),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 15.0,right: 15.0),
+                      child: TextField(
+                        controller: confirmPasswordController,
+                        obscureText: !isConfirmPasswordVisible,
+                        obscuringCharacter: '*',
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                            borderSide: BorderSide(color: Colors.grey),
+                          ),
+                          prefixIcon: const Icon(Icons.key),
+                          prefixIconColor: Colors.black,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                              color: Colors.black,
+                            ), onPressed: () {
+                            setState(() {
+                              isConfirmPasswordVisible = !isConfirmPasswordVisible;
+                            });
+                          },
+                          ),
+                        ),
+                      ),
+                    ),
 
                     Padding(
                       padding: const EdgeInsets.only(left: 15.0, right: 15.0),
                       child: ElevatedButton(onPressed: (){
-                        _signUp();
-                      },
+                        if(passwordController.text == confirmPasswordController.text) {
+                          if(passwordController.text.isNotEmpty) {
+                            signUpWithEmailAndPassword();
+                          } else {
+                            Fluttertoast.showToast(
+                              msg: "Please enter a password.",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              backgroundColor: Colors.white,
+                              textColor: Colors.black,
+                            );
+                          }
+                        } else {
+                          Fluttertoast.showToast(
+                            msg: "Passwords do not match.",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            backgroundColor: Colors.white,
+                            textColor: Colors.black,
+                          );
+                        }
+                        },
                         style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFFD36675)),
                           minimumSize: MaterialStateProperty.all<Size>(

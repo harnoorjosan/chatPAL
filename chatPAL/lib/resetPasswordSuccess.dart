@@ -1,4 +1,3 @@
-import 'package:chatpal/main.dart';
 import 'package:flutter/material.dart';
 
 import 'loginPage.dart';
@@ -78,6 +77,6 @@ class _ResetPasswordSuccessState extends State<ResetPasswordSuccess> {
       ),
 
 
-    );;
+    );
   }
 }
