@@ -1,7 +1,5 @@
-import 'package:chatpal/main.dart';
 import 'package:chatpal/resetPassword.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class LinkSent extends StatefulWidget {
   const LinkSent({Key? key}) : super(key: key);
 

@@ -1,8 +1,4 @@
-import 'package:chatpal/homePage.dart';
-import 'package:chatpal/signUp.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:chatpal/forgotPassword.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter/widgets.dart';
