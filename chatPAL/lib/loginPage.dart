@@ -182,7 +182,6 @@ class _LoginPageState extends State<LoginPage> {
                               borderRadius: BorderRadius.all(Radius.circular(10.0)),
                               borderSide: BorderSide(color: Colors.black),
                             ),
-                            hintText: 'best_wizard421',
                             hintStyle: TextStyle(
                               color: Colors.black,
                             ),
@@ -233,7 +232,6 @@ class _LoginPageState extends State<LoginPage> {
                               borderRadius: BorderRadius.all(Radius.circular(10.0)),
                               borderSide: BorderSide(color: Colors.grey),
                             ),
-                            hintText: '*************',
                             hintStyle: const TextStyle(
                               color: Colors.black,
                             ),
