@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:chatpal/loginPage.dart';
@@ -22,40 +25,77 @@ class _SignUpState extends State<SignUp> {
   bool isPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
 
-  Future<void> signUpWithEmailAndPassword() async{
+  Future<void> signUp(String flag) async {
     try {
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      if (flag == 'EmailAndPassword') {
+        final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: emailController.text,
           password: passwordController.text,
-      );
-
-      User user = userCredential.user!;
-
-      await FirebaseFirestore.instance.collection('UserName').doc(usernameController.text).set({
-        'uid': user.uid,
-        'Name': nameController.text,
-      });
-
-      //signUp successful
-      if(context.mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const LoginPage(),
-          ),
         );
+        final user = userCredential.user!;
+        await FirebaseFirestore.instance.collection('users').doc(
+            usernameController.text).set({
+          'Uid': user.uid,
+          'Name': nameController.text,
+        }).then((value) {
+          //signUp successful
+          FirebaseAuth.instance.currentUser!.updateDisplayName(
+              nameController.text);
+          if (context.mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const LoginPage(),
+              ),
+            );
+          }
+        }).catchError((e) {
+          if (kDebugMode) {
+            print(e);
+          }
+        });
       }
-    } on FirebaseAuthException catch(e) {
-      //handle invalid signUp data
-      if(e.code == 'weak-password') {
-        Fluttertoast.showToast(
-          msg: "This password is too weak.",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.white,
-          textColor: Colors.black,
+      else if (flag == 'Google') {
+        final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+        final GoogleSignInAuthentication? googleAuth = await googleUser
+            ?.authentication;
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth?.accessToken,
+          idToken: googleAuth?.idToken,
         );
-      } else if(e.code == 'email-already-in-use') {
+        final userCredential = await FirebaseAuth.instance.signInWithCredential(
+            credential);
+        final user = userCredential.user!;
+
+        //TODO : replace this with new data if a set username page is made
+        String randomUsername = generateRandomUsername();
+        await FirebaseFirestore.instance.collection('users')
+            .doc(randomUsername)
+            .set({
+          'Uid': user.uid,
+          'Name': user.displayName,
+        })
+            .then((value) {
+          //signUp successful
+          FirebaseAuth.instance.currentUser!.updateDisplayName(
+              nameController.text);
+          if (context.mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const LoginPage(),
+              ),
+            );
+          }
+        }).catchError((e) {
+          if (kDebugMode) {
+            print(e);
+          }
+        });
+      }
+    } on FirebaseAuthException catch (e) {
+      //handle invalid signUp data
+      if (e.code == 'email-already-in-use') {
         Fluttertoast.showToast(
           msg: "The account already exists for this email.",
           toastLength: Toast.LENGTH_SHORT,
@@ -63,7 +103,7 @@ class _SignUpState extends State<SignUp> {
           backgroundColor: Colors.white,
           textColor: Colors.black,
         );
-      } else if(e.code == 'invalid-email') {
+      } else if (e.code == 'invalid-email') {
         Fluttertoast.showToast(
           msg: "The email address is invalid.",
           toastLength: Toast.LENGTH_SHORT,
@@ -73,7 +113,7 @@ class _SignUpState extends State<SignUp> {
         );
       } else {
         Fluttertoast.showToast(
-          msg: "SignUp failed.",
+          msg: "An error occurred. Please try again later.",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.white,
@@ -81,9 +121,8 @@ class _SignUpState extends State<SignUp> {
         );
       }
     } catch (e) {
-
       Fluttertoast.showToast(
-        msg: "SignUp failed.",
+        msg: "An error occurred. Please try again later.",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         backgroundColor: Colors.white,
@@ -92,21 +131,19 @@ class _SignUpState extends State<SignUp> {
     }
   }
 
-  Future<UserCredential> signUpWithGoogle() async {
-    // Trigger the authentication flow
-    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-
-    // Obtain the auth details from the request
-    final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
-
-    // Create a new credential
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth?.accessToken,
-      idToken: googleAuth?.idToken,
-    );
-
-    // Once signed in, return the UserCredential
-    return await FirebaseAuth.instance.signInWithCredential(credential);
+  String generateRandomUsername() {
+    // Generate a username with a random string and current timestamp
+    const characters =
+        '+-*=?AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz';
+    Random random = Random();
+    String randomString = String.fromCharCodes(Iterable.generate(
+        5, (_) => characters.codeUnitAt(random.nextInt(characters.length))));
+    String timestamp = DateTime
+        .now()
+        .millisecondsSinceEpoch
+        .toString();
+    String username = '$randomString$timestamp';
+    return username;
   }
 
   @override
@@ -161,15 +198,15 @@ class _SignUpState extends State<SignUp> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                     const Padding(
-                       padding: EdgeInsets.all(15.0),
-                       child: Text('Create an Account',
+                    const Padding(
+                      padding: EdgeInsets.all(15.0),
+                      child: Text('Create an Account',
 
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: 40.0,
                         ),),
-                     ),
+                    ),
                     const Padding(
                       padding: EdgeInsets.only(left: 15.0),
                       child: Text('Full Name*',
@@ -177,12 +214,14 @@ class _SignUpState extends State<SignUp> {
                             fontSize: 16.0),
                       ),
                     ),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 15.0,right: 15.0),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 15.0, right: 15.0),
                       child: TextField(
-                        decoration: InputDecoration(
+                        controller: nameController,
+                        decoration: const InputDecoration(
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(10.0)),
                             borderSide: BorderSide(color: Colors.grey),
                           ),
                         ),
@@ -197,12 +236,13 @@ class _SignUpState extends State<SignUp> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(left: 15.0,right: 15.0),
+                      padding: const EdgeInsets.only(left: 15.0, right: 15.0),
                       child: TextField(
                         controller: usernameController,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(10.0)),
                             borderSide: BorderSide(color: Colors.grey),
                           ),
                         ),
@@ -217,12 +257,13 @@ class _SignUpState extends State<SignUp> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(left: 15.0,right: 15.0),
+                      padding: const EdgeInsets.only(left: 15.0, right: 15.0),
                       child: TextField(
                         controller: emailController,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(10.0)),
                             borderSide: BorderSide(color: Colors.grey),
                           ),
                           hintText: 'email@email.com',
@@ -241,27 +282,29 @@ class _SignUpState extends State<SignUp> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(left: 15.0,right: 15.0),
+                      padding: const EdgeInsets.only(left: 15.0, right: 15.0),
                       child: TextField(
                         controller: passwordController,
                         obscureText: !isPasswordVisible,
                         obscuringCharacter: '*',
                         decoration: InputDecoration(
                           border: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(10.0)),
                             borderSide: BorderSide(color: Colors.grey),
                           ),
                           prefixIcon: const Icon(Icons.key),
                           prefixIconColor: Colors.black,
                           suffixIcon: IconButton(
                             icon: Icon(
-                              isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                              isPasswordVisible ? Icons.visibility : Icons
+                                  .visibility_off,
                               color: Colors.black,
                             ), onPressed: () {
-                              setState(() {
-                                isPasswordVisible = !isPasswordVisible;
-                              });
-                            },
+                            setState(() {
+                              isPasswordVisible = !isPasswordVisible;
+                            });
+                          },
                           ),
                         ),
                       ),
@@ -275,32 +318,36 @@ class _SignUpState extends State<SignUp> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(left: 15.0,right: 15.0),
+                      padding: const EdgeInsets.only(left: 15.0, right: 15.0),
                       child: TextField(
                         controller: confirmPasswordController,
                         obscureText: !isConfirmPasswordVisible,
                         obscuringCharacter: '*',
                         decoration: InputDecoration(
                           border: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(10.0)),
                             borderSide: BorderSide(color: Colors.grey),
                           ),
                           prefixIcon: const Icon(Icons.key),
                           prefixIconColor: Colors.black,
                           suffixIcon: IconButton(
                             icon: Icon(
-                              isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                              isConfirmPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
                               color: Colors.black,
                             ), onPressed: () {
                             setState(() {
-                              isConfirmPasswordVisible = !isConfirmPasswordVisible;
+                              isConfirmPasswordVisible =
+                              !isConfirmPasswordVisible;
                             });
                           },
                           ),
                         ),
                       ),
                     ),
-                    /* CHECKBOX - Terms and Conditions
+                    /*
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -317,48 +364,44 @@ class _SignUpState extends State<SignUp> {
                           Row(
                             children: [
                               Checkbox(
-                                value: _isAgreedToTerms,
-                                onChanged: _toggleTermsAgreement,
-                              ),
-                              const Text('I agree to the terms and conditions'),
-                            ],
+                                value: false,
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    value = true;
+                                  });
+                                }
+                            )],
                           ),
-                        ]
+                          ]
                         ),
                       ),
-
                      */
                     Padding(
                       padding: const EdgeInsets.only(left: 15.0, right: 15.0),
-                      child: ElevatedButton(onPressed: (){
-                        if(passwordController.text == confirmPasswordController.text) {
-                          if(passwordController.text.isNotEmpty) {
-                            signUpWithEmailAndPassword();
-                          } else {
-                            Fluttertoast.showToast(
-                              msg: "Please enter a password.",
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.white,
-                              textColor: Colors.black,
-                            );
-                          }
-                        } else {
+                      child: ElevatedButton(onPressed: () {
+                        if (nameController.text.isEmpty || usernameController.text.isEmpty || emailController.text.isEmpty) {
                           Fluttertoast.showToast(
-                            msg: "Passwords do not match.",
+                            msg: "Please enter all the mandatory fields.",
                             toastLength: Toast.LENGTH_SHORT,
                             gravity: ToastGravity.BOTTOM,
                             backgroundColor: Colors.white,
                             textColor: Colors.black,
                           );
                         }
-                        },
+                        else {
+                          if (isPasswordValid()) {
+                            signUp('EmailAndPassword');
+                          }
+                        }
+                      },
                         style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFFD36675)),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              const Color(0xFFD36675)),
                           minimumSize: MaterialStateProperty.all<Size>(
                             const Size(200.0, 60.0),
                           ),
-                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          shape: MaterialStateProperty.all<
+                              RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10.0),
                             ),
@@ -374,7 +417,7 @@ class _SignUpState extends State<SignUp> {
                     ),
                     const SizedBox(height: 20.0),
                     const Center(
-                      child: Text('OR',style: TextStyle(
+                      child: Text('OR', style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 20.0
                       ),),
@@ -385,8 +428,8 @@ class _SignUpState extends State<SignUp> {
                         Padding(
                           padding: const EdgeInsets.only(left: 100),
                           child: GestureDetector(
-                            onTap: (){
-                              signUpWithGoogle();
+                            onTap: () {
+                              signUp('Google');
                             },
                             child: const Icon(
                               FontAwesomeIcons.google,
@@ -398,8 +441,7 @@ class _SignUpState extends State<SignUp> {
                         Padding(
                           padding: const EdgeInsets.only(left: 120),
                           child: GestureDetector(
-                            onTap: (){
-                            },
+                            onTap: () {},
                             child: const Icon(
                               FontAwesomeIcons.apple,
                               size: 50,
@@ -413,10 +455,12 @@ class _SignUpState extends State<SignUp> {
                     Row(children: [
                       const Padding(
                         padding: EdgeInsets.only(left: 90.0),
-                        child: Text('Already have a account? ',style: TextStyle(color: Colors.black,fontSize: 16.0),),
+                        child: Text(
+                          'Already have a account? ', style: TextStyle(
+                            color: Colors.black, fontSize: 16.0),),
                       ),
                       GestureDetector(
-                          onTap: (){
+                          onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -425,7 +469,8 @@ class _SignUpState extends State<SignUp> {
                             );
                           },
                           child: const Text('Log In', style: TextStyle(
-                              color: Color(0xFFD36675),fontWeight: FontWeight.bold
+                              color: Color(0xFFD36675),
+                              fontWeight: FontWeight.bold
                           ),)
                       ),
                     ],)
@@ -437,5 +482,53 @@ class _SignUpState extends State<SignUp> {
         ],
       ),
     );
+  }
+
+  bool isPasswordValid() {
+    if (passwordController.text == confirmPasswordController.text) {
+      if (passwordController.text.isNotEmpty) {
+        // Define the criteria for a valid password
+        const minLength = 10;
+        final hasUppercase = RegExp(r'[A-Z]').hasMatch(passwordController.text);
+        final hasLowercase = RegExp(r'[a-z]').hasMatch(passwordController.text);
+        final hasSpecialCharacters = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(
+            passwordController.text);
+        // Check if the password meets all the criteria
+        if (passwordController.text.length >= minLength &&
+            hasUppercase &&
+            hasLowercase &&
+            hasSpecialCharacters) {
+          return true;
+        }
+        else {
+          Fluttertoast.showToast(
+            msg: "This password is too weak.",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.white,
+            textColor: Colors.black,
+          );
+          return false;
+        }
+      } else {
+        Fluttertoast.showToast(
+          msg: "Please enter a password.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+        );
+        return false;
+      }
+    } else {
+      Fluttertoast.showToast(
+        msg: "Passwords do not match.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.white,
+        textColor: Colors.black,
+      );
+      return false;
+    }
   }
 }
