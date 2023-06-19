@@ -1,3 +1,4 @@
+import 'package:chatpal/addUsername.dart';
 import 'package:chatpal/homePage.dart';
 import 'package:chatpal/signUp.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -322,7 +323,7 @@ class _LoginPageState extends State<LoginPage> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (
-                                            context) => const HomePage(),
+                                            context) => const addUsername(),
                                       ),
                                     );
                                   }

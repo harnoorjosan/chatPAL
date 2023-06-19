@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:chatpal/cameraUtil.dart';
 import 'package:chatpal/loginPage.dart';
 import 'package:flutter/material.dart';
@@ -9,9 +11,12 @@ class profilePage extends StatefulWidget {
   State<profilePage> createState() => _profilePageState();
 }
 
-class _profilePageState extends State<profilePage> {
+class _profilePageState extends State<profilePage> with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   File? profileImage;
+  late final TabController _tabController = TabController(length: 2, vsync: this);
+
+
   void _showCameraDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -31,7 +36,6 @@ class _profilePageState extends State<profilePage> {
                   if (context.mounted) {
                     Navigator.pop(context);
                   }
-                  // Add your logic to capture a live picture here
                 },
                 child: const Text('Take a Live Picture'),
               ),
@@ -46,7 +50,6 @@ class _profilePageState extends State<profilePage> {
                   if (context.mounted) {
                     Navigator.pop(context);
                   }
-                  // Add your logic to select a picture from the gallery here
                 },
                 child: const Text('Select from Gallery'),
               ),
@@ -56,6 +59,47 @@ class _profilePageState extends State<profilePage> {
       },
     );
   }
+
+  void _showImageDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                  child: SizedBox(
+                    width: 300,
+                    height: 300,
+                    child: profileImage != null
+                        ? Image.file(profileImage!, fit: BoxFit.cover)
+                        : const Center(child: Text('No image selected')),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,13 +153,18 @@ class _profilePageState extends State<profilePage> {
               Stack(
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(left: 15.0, top: 15.0),
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.pink,
-                      backgroundImage: profileImage != null
-                          ? MemoryImage(profileImage!.readAsBytesSync())
-                          : null,
+                    padding: const EdgeInsets.only(left: 15.0, top: 15.0),
+                    child: GestureDetector(
+                      onTap: (){
+                        _showImageDialog(context);
+                        },
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.pink,
+                        backgroundImage: profileImage != null
+                            ? MemoryImage(profileImage!.readAsBytesSync())
+                            : null,
+                      ),
                     ),
                   ),
                   Positioned(
@@ -155,10 +204,35 @@ class _profilePageState extends State<profilePage> {
           const Padding(
             padding: EdgeInsets.only(right: 300.0),
             child: Text('He/Him',style: TextStyle(fontSize: 20.0),),
-          )
+          ),
+          TabBar(
+            controller: _tabController,
+            labelColor: Colors.blue,
+            unselectedLabelColor: Colors.black,
+            tabs: const [
+              Tab(text: 'Posts'),
+              Tab(text: 'Tweets'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: const [
+                // Contents of the 'Posts' tab
+                Center(
+                  child: Text('Posts'),
+                ),
+
+                // Contents of the 'Tweets' tab
+                Center(
+                  child: Text('Tweets'),
+                ),
+              ],
+            ),
+          ),
 
         ],
       ),
     );
   }
-  }
+}
