@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:chatpal/linkSent.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 
 class ForgotPassword extends StatefulWidget {
@@ -27,15 +28,51 @@ class _ForgotPasswordState extends State<ForgotPassword> {
           );
         }
 
-        if (kDebugMode) {
-          print('Password reset email sent to $email');
-        }
+        Fluttertoast.showToast(
+          msg: "Reset link was sent to the email: $email",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+        );
       }
 
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error sending password reset email: $e');
+    } on FirebaseAuthException catch(e) {
+      //handle invalid signUp data
+      if(e.code == 'user-not-found') {
+        Fluttertoast.showToast(
+          msg: "No user found with the email address.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+        );
+      } else if(e.code == 'invalid-email') {
+        Fluttertoast.showToast(
+          msg: "The email address is invalid.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+        );
+      } else {
+        Fluttertoast.showToast(
+          msg: "Error occurred while sending the link.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.white,
+          textColor: Colors.black,
+        );
       }
+    } catch (e) {
+
+      Fluttertoast.showToast(
+        msg: "Error occurred while sending the link.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.white,
+        textColor: Colors.black,
+      );
     }
   }
 
