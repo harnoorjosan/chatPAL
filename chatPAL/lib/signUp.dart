@@ -376,6 +376,7 @@ class _SignUpState extends State<SignUp> {
                         ),
                       ),
                      */
+                    const SizedBox(height: 40.0),
                     Padding(
                       padding: const EdgeInsets.only(left: 15.0, right: 15.0),
                       child: ElevatedButton(onPressed: () {
