@@ -1,3 +1,4 @@
+import 'package:chatpal/authPage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -22,7 +23,7 @@ class chatpal extends StatelessWidget {
       theme: ThemeData(
         primaryColor: const Color(0xFFD36675),
       ),
-      home: const LoginPage(),
+      home: const authPage(),
     );
   }
 }

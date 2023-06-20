@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:chatpal/cameraUtil.dart';
 import 'package:chatpal/loginPage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 class profilePage extends StatefulWidget {
@@ -130,17 +131,16 @@ class _profilePageState extends State<profilePage> with SingleTickerProviderStat
             ),
             ListTile(
               title: const Text('Log Out'),
-              onTap: () {
-                // Handle "Log Out" menu item pressed
+              onTap: () async {
+                await FirebaseAuth.instance.signOut();
                 if (context.mounted) {
-                  Navigator.push(
+                  Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const LoginPage(),
-                    ),
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                        (route) => false,
                   );
-                }// Close the drawer
-                // Add your logic for handling "Log Out" here
+                }
+
               },
             ),
           ],

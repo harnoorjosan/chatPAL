@@ -4,6 +4,7 @@ import 'package:chatpal/signUp.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:chatpal/forgotPassword.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -21,6 +22,27 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   bool isPasswordVisible = false;
   bool isLoading = false;
+  bool rememberMe = false;
+  final storage = const FlutterSecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    retrieveRememberMeData();
+  }
+
+  void retrieveRememberMeData() async {
+    final emailValue = await storage.read(key: 'email');
+
+    setState(() {
+
+      if (emailValue != null) {
+        usernameController.text = emailValue;
+      }
+
+    });
+
+  }
 
   void authenticateUserIn() async{
     //await FirebaseAuth.instance.signInWithEmailAndPassword(email: usernameController.text, password: passwordController.text);
@@ -29,6 +51,11 @@ class _LoginPageState extends State<LoginPage> {
           email: usernameController.text,
           password: passwordController.text
       );
+
+      if (rememberMe) {
+        await storage.write(key: 'email', value: usernameController.text);
+      }
+
       if (context.mounted) {
         Navigator.push(
           context,
@@ -253,12 +280,28 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                         ),
+                      ), // Add some spacing between password field and checkbox
+                      Padding(
+                        padding: const EdgeInsets.only(left: 5.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Checkbox(
+                              value: rememberMe,
+                              onChanged: (bool? newValue) {
+                                setState(() {
+                                  rememberMe = newValue ?? false;
+                                });
+                              },
+                            ),
+                            const Text('Remember Me'),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 40.0),
+                      const SizedBox(height: 10.0),
                       Padding(
                         padding: const EdgeInsets.only(left: 15.0, right: 15.0),
                         child: ElevatedButton(onPressed: (){
-
                           authenticateUserIn();
 
                           },
@@ -281,7 +324,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),),
                       ),
-                      const SizedBox(height: 40.0),
+                      const SizedBox(height: 40.0,),
                       // const Center(
                       //   child: Text('OR',style: TextStyle(
                       //       fontWeight: FontWeight.bold,
@@ -390,4 +433,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
