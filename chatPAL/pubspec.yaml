@@ -43,6 +43,7 @@ dependencies:
   google_sign_in: ^6.1.4
   camera: ^0.10.5+2
   image_picker: ^0.8.9
+  flutter_secure_storage: ^8.0.0
 
 dev_dependencies:
   flutter_test:
