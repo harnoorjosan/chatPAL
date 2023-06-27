@@ -1,13 +1,12 @@
 import 'dart:ui';
-
 import 'package:chatpal/cameraUtil.dart';
 import 'package:chatpal/loginPage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
+
 class profilePage extends StatefulWidget {
   const profilePage({super.key});
-
   @override
   State<profilePage> createState() => _profilePageState();
 }
@@ -217,14 +216,22 @@ class _profilePageState extends State<profilePage> with SingleTickerProviderStat
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: const [
+              children:  [
                 // Contents of the 'Posts' tab
-                Center(
-                  child: Text('Posts'),
+                GridView.count(
+                  crossAxisCount: 3,
+                  children: const [
+                    Placeholder(),
+                    Placeholder(),
+                    Placeholder(),
+                    Placeholder(),
+                    Placeholder(),
+                    Placeholder(),
+                  ],
                 ),
 
                 // Contents of the 'Tweets' tab
-                Center(
+                const Center(
                   child: Text('Tweets'),
                 ),
               ],

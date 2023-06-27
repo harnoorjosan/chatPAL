@@ -30,4 +30,16 @@ class cameraUtil {
     return null;
 
   }
+
+  static Future<List<File>?> openGallerywithMultiSelect(BuildContext context) async {
+    final picker = ImagePicker();
+    final pickedFiles = await picker.pickMultiImage();
+
+    // Process the picked image files as needed
+    if (pickedFiles != null) {
+      List<File> imageFiles = pickedFiles.map((pickedFile) => File(pickedFile.path)).toList();
+      return imageFiles;
+    }
+    return null;
+  }
 }
